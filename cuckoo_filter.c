@@ -91,7 +91,7 @@ short __insert_element(const char* name,const char* key);
 short __check_element(const char* name, const char* key);
 short __remove_element(const char* name, const char* key);
 short __remove_cuckoo_filter(const char* __name);
-short __is_bucket_empty(const struct *__cuckoo_filter my_filter, const M_BIT_ARRAY_LENGTH_TYPE index); 
+short __is_bucket_empty(const struct __cuckoo_filter *my_filter, const M_BIT_ARRAY_LENGTH_TYPE index); 
 
 /*List of explicit functions (exposed to user)*/
 short add_cuckoo_filter(const char* name,const unsigned int m_bit_array_length_in_bits);
@@ -245,11 +245,11 @@ __murmur3_32_bit_hash(const char* key)
     Output : Returns 1 if bucket is empty.
              Returns 0 if bucket is not empty.
 */
-short ___is_bucket_empty(const struct * __cuckoo_filter my_filter, const M_BIT_ARRAY_LENGTH_TYPE index)
+short ___is_bucket_empty(const struct  __cuckoo_filter *my_filter, const M_BIT_ARRAY_LENGTH_TYPE index)
 {
     assert(my_filter->__m_bit_finger_print_array);
     
-    if(__EMPTY_ELEMENT == __m_bit_finger_print_array[index])
+    if(__EMPTY_ELEMENT == my_filter->__m_bit_finger_print_array[index])
         return 1;//Bucket entry is empty
     
     return 0;//Bucket entry is not empty
@@ -485,6 +485,7 @@ __check_element(const char* name, const char* key)
             Returns 0 -- if key deletion fails.
             Returns 1 -- if the key is deleted successfully.
 */
+short
 __remove_element(const char* name, const char* key)
 {
 
