@@ -9,8 +9,9 @@
 #define TRACE(X) ;
 
 #ifdef __TRACE
+    #undef TRACE
     #define TRACE(x) \
-            printf("\n [TRACE] "); \
+            printf("\n [TRACE] %s %s %s %s",__DATE__,__TIME__,__FILE__,__LINE__); \
             printf(x); \
             printf("\n");
 #endif
@@ -20,8 +21,9 @@
 #define DEBUG(X) ;
 
 #ifdef __DEBUG
+    #undef DEBUG
     #define DEBUG(x) \
-            printf("\n [DEBUG] ");\
+            printf("\n [DEBUG] %s %s %s %s",__DATE__,__TIME__,__FILE__,__LINE__);\
             printf(x);\
             printf("\n");
 #endif
@@ -118,6 +120,7 @@ struct __cuckoo_filter * __get_filter_by_id(const M_BIT_ARRAY_LENGTH_TYPE id);
 struct __cuckoo_filter * __get_filter_by_name(const char* name);
 short __insert_element(const char* name,const char* key);
 short __check_element(const char* name, const char* key);
+short __is_element_present_in_bucket(FINGER_PRINT_TYPE finger_print,M_BIT_ARRAY_LENGTH_TYPE bucket_no,const struct __cuckoo_filter* const my_filter,  M_BIT_ARRAY_LENGTH_TYPE * indexWhereElemIsPresent);
 short __remove_element(const char* name, const char* key);
 short __remove_cuckoo_filter(const char* __name);
 short __is_bucket_empty(const struct __cuckoo_filter *my_filter, const M_BIT_ARRAY_LENGTH_TYPE index,M_BIT_ARRAY_LENGTH_TYPE * indexOfEmptyElement);
@@ -139,6 +142,50 @@ short delete_cuckoo_filter(const char* name);
 
 
 /*
+    Function : Checks if an element is present in the given bucket.
+    Input : finger_print - The finger-print that is checked for its presence in the bucket of the filter.
+            bucket - The bucket within which the element is checked for its presence.
+    Output : 1 - if the element is present in the bucket.
+             0 - if the element is not present in the bucket.
+*/
+short 
+__is_element_present_in_bucket(FINGER_PRINT_TYPE finger_print,M_BIT_ARRAY_LENGTH_TYPE bucket_no,const struct __cuckoo_filter* const my_filter, M_BIT_ARRAY_LENGTH_TYPE * indexWhereElemIsPresent)
+{
+    TRACE("\"Checking if element is present in the specified bucket.\"");
+    assert(my_filter->__m_bit_finger_print_array);
+    * indexWhereElemIsPresent = 0;
+   
+    //get starting index of bucket in the given filter...
+    M_BIT_ARRAY_LENGTH_TYPE firstIndex = __getFirstIndexOfTheBucket(my_filter, bucket_no);
+    
+    M_BIT_ARRAY_LENGTH_TYPE lastIndex = __getLastIndexOfTheBucket(my_filter, bucket_no);
+    //get ending index of bucket in the given filter.
+
+    M_BIT_ARRAY_LENGTH_TYPE iterIndex = firstIndex;
+
+    //For each of entries b/w and including first and second index, check if the element contains finger-print.
+    for(iterIndex = firstIndex; iterIndex <= lastIndex; iterIndex ++)
+    {
+        //TO DO :- since currently the finger-print is 8 bit, we can compare using single equality operator,
+        //This comparison logic should be changed if finger-print is not 8-bit.
+        if(finger_print == my_filter->__m_bit_finger_print_array[iterIndex])
+        {
+//#if DEBUG
+            //printf("\n The filter named '%s' has an empty free in the bucket number '%d'\n",my_filter->__name,bucket_no);
+//#endif
+            *indexWhereElemIsPresent = iterIndex;
+
+            DEBUG("\"The bucket contains the fingerprint %s\",finger_print");
+            return 1;//Bucket entry is empty
+        }
+    }
+
+    DEBUG("\"The bucket doesn't contain the fingerprint %s\",finger_print");
+    return 0;
+}
+
+
+/*
     Function :
     Returns the bucket number into which the element is to be inserted. A bucket can contain n elements.
     Input : elem_insertion_index - The element index where the element is to be stored.
@@ -154,7 +201,7 @@ __getBucketNumber(const struct __cuckoo_filter* const ckFilter, M_BIT_ARRAY_LENG
     
     //The size of each bucket, i.e. the number of elements that a single bucket can contain, is pre-defined.
     //The index will start from '0', but for calculation we need it to be started from 1, hence we will consider index+1.
-   M_BIT_ARRAY_LENGTH_TYPE  bucketNo = ceil((elem_insertion_index + 1)/ __MAX_ELEMS_IN_A_BUCKET);
+   M_BIT_ARRAY_LENGTH_TYPE  bucketNo = ceil((elem_insertion_index + 1)/(__MAX_ELEMS_IN_A_BUCKET));
    DEBUG("\"bucket_no : %d\",bucketNo");
    assert(bucketNo >= 1 && bucketNo <= ckFilter->__total_no_of_buckets);
    return bucketNo;
@@ -372,9 +419,10 @@ short __is_bucket_empty(const struct  __cuckoo_filter *my_filter, const M_BIT_AR
         {
             //set insertion index to this index value..
             *indexOfEmptyElement = iterIndex;
-#if DEBUG
-            printf("\n The filter named '%s' has an empty free in the bucket number '%d'\n",my_filter->__name,bucket_no);
-#endif
+//#if DEBUG
+            //printf("\n The filter named '%s' has an empty free in the bucket number '%d'\n",my_filter->__name,bucket_no);
+//#endif
+            DEBUG("\"The filter named %s has an empty space at the bucket number %d\",my_filter->__name,bucket_no");
             return 1;//Bucket entry is empty
         }
     }
@@ -489,7 +537,9 @@ __create_cuckoo_filter(const char* __name, const int __total_no_of_elems_allowed
         return 0;//Failed to allocate memory. Try again
 
     //We were successfully able to allocate memory to the cuckoo filter, now increment the necessary parameters and add into the cuckoo filters list.
-    memset(new_filter->__m_bit_finger_print_array,__EMPTY_ELEMENT ,new_filter->__m_bit_arr_len_in_bytes);//Initialize the finger-print array to 0 indicating that it is empty.
+   //Initialize the finger-print array to 0 indicating that it is empty.
+    memset(new_filter->__m_bit_finger_print_array,__EMPTY_ELEMENT ,new_filter->__m_bit_arr_len_in_bytes);
+      
 
     new_filter->__total_no_of_buckets = ceil(new_filter->__m_bit_arr_len_in_bytes / __MAX_ELEMS_IN_A_BUCKET);
 
@@ -713,6 +763,52 @@ short
 __check_element(const char* name, const char* key)
 {
     TRACE("\"Checking Element Existence.\n\"");
+     if(NULL == name || NULL == key)
+        return 0;
+    
+    struct __cuckoo_filter* filter = NULL;
+
+    filter = __get_filter_by_name(name);
+    if(NULL == filter)
+        return 0;
+    
+    assert(filter->__m_bit_finger_print_array);
+
+    //get finger print for given key..
+    FINGER_PRINT_TYPE finger_print = __get_finger_print(key);
+ 
+    M_BIT_ARRAY_LENGTH_TYPE hash1 = __get_hash_1(key);
+    //This hash1 must be < finger_print array length. This hash1 should be converted into the bucket number in which the finger print is to be stored.
+    hash1 = hash1 % filter->__m_bit_arr_len_in_bytes;
+    M_BIT_ARRAY_LENGTH_TYPE bucket_1 = __getBucketNumber(filter,hash1);
+    M_BIT_ARRAY_LENGTH_TYPE locWhereElemIsPresent = 0;
+
+    //Check if element is present in first bucket.
+    if(__is_element_present_in_bucket(finger_print,bucket_1,filter,&locWhereElemIsPresent))
+    {
+        DEBUG("\"Element %s found at bucket number: %d at index %d\",key,bucket_1,locWhereElemIsPresent");
+        return 1;
+    }
+
+    //Else check the element presence in second bucket.
+
+    //M_BIT_ARRAY_LENGTH_TYPE hash2 = __get_hash_2(finger_print,hash1);
+    M_BIT_ARRAY_LENGTH_TYPE hash2 = __get_hash_2(finger_print,bucket_1);
+
+    //This hash2 must be < finger_print array length.
+    hash2 = hash2 % filter->__m_bit_arr_len_in_bytes;
+
+    M_BIT_ARRAY_LENGTH_TYPE bucket_2 = __getBucketNumber(filter,hash2);
+
+    //Check element presence in bucket 2.
+    if(__is_element_present_in_bucket(finger_print,bucket_2,filter,&locWhereElemIsPresent))
+    {
+        DEBUG("\"Element '%s' found at bucket number: %d at index %d\",key,bucket_2,locWhereElemIsPresent");
+        return 1;
+    }
+
+    DEBUG("\"Element '%s' NOT FOUND in the filter\",key");
+    return 0; 
 }
 
 
