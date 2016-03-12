@@ -1,6 +1,3 @@
-/*
-  Implementing Cuckoo filter as a command interface to redis cli.
-*/
 //#include <math.h>
 #include <stdio.h>
 //#include <sys/types.h>
@@ -9,7 +6,15 @@
 #include <assert.h>
 #include <math.h>
 
-/********************  FUNCTIONS NOT EXPOSED TO EXTERNAL SOURCES  *************************/
+//Macro's for Debug and Trace.
+//#define TRACE(x) (#ifdef __TRACE printf("\n [TRACE] "); printf(x); #endif)
+#define TRACE(x) (#ifdef {__TRACE printf("\n [TRACE] "); printf(x);} #endif)
+
+#define DEBUG(x) \
+        #ifdef __DEBUG \
+            printf("\n [DEBUG] ");\
+            printf(x);\
+        #endif
 
 #define MAX_CUCKOO_FILTER_NAME_LENGTH 32+1
 #define __MAX_SUM_OF_BITS_OF_ALL_CUCKOO_FILTERS ((512*1024*1024*8)-1)//Max of 4 billion entries are allowed. This is the requirement for testing with 4 billion bits. So if 1-bit/item is used 4 billion(4294967296) entries are possible else if 8-bits/item is used then 53 million(536870912) entries are possible at max.
@@ -55,6 +60,7 @@
 
 #define __MAX_ELEMS_IN_A_BUCKET 8/*A bucket can hold a  max of 8 entries/elements (elements conatin 1 finger-print(8-bit) each.*/
 #define __MAX_CUCKOO_KICKS 100
+
 /*
     The internal structure that holds the information about all the cuckoo filters.
 */
@@ -109,6 +115,9 @@ short delete_element(const char* name, const char* key);
 short delete_cuckoo_filter(const char* name);
 
 
+/********************  FUNCTIONS NOT EXPOSED TO EXTERNAL SOURCES  *************************/
+
+
 /*
     Function :
     Returns the bucket number into which the element is to be inserted. A bucket can contain n elements.
@@ -118,6 +127,10 @@ short delete_cuckoo_filter(const char* name);
 M_BIT_ARRAY_LENGTH_TYPE
 __getBucketNumber(const struct __cuckoo_filter* const ckFilter, M_BIT_ARRAY_LENGTH_TYPE elem_insertion_index)
 {
+//#if TRACE
+    //printf("\n [TRACE] Getting Bucket Number\n");
+//#endif
+    TRACE("\"Getting Bucket Number\n \"");
     //The size of each bucket, i.e. the number of elements that a single bucket can contain, is pre-defined.
     //The index will start from '0', but for calculation we need it to be started from 1, hence we will consider index+1.
    M_BIT_ARRAY_LENGTH_TYPE  bucketNo = ceil((elem_insertion_index + 1)/ __MAX_ELEMS_IN_A_BUCKET);
@@ -134,6 +147,10 @@ __getBucketNumber(const struct __cuckoo_filter* const ckFilter, M_BIT_ARRAY_LENG
 M_BIT_ARRAY_LENGTH_TYPE 
 __getFirstIndexOfTheBucket(const struct __cuckoo_filter * const ckFilter , M_BIT_ARRAY_LENGTH_TYPE bucket_no)
 {
+//#if TRACE
+    //printf("\n [TRACE] Getting First Index\n");
+//#endif
+    TRACE("\"Getting First Index\n\"");
     assert(bucket_no >= 1);
     M_BIT_ARRAY_LENGTH_TYPE firstIndex = 0;
     firstIndex = (__MAX_ELEMS_IN_A_BUCKET * (bucket_no - 1));
@@ -150,7 +167,10 @@ __getFirstIndexOfTheBucket(const struct __cuckoo_filter * const ckFilter , M_BIT
 M_BIT_ARRAY_LENGTH_TYPE 
 __getLastIndexOfTheBucket(const struct __cuckoo_filter * const ckFilter, M_BIT_ARRAY_LENGTH_TYPE bucket_no)
 {
-    assert(bucket_no >= 1);
+// #if TRACE
+    //printf("\n [TRACE] Getting Last Index\n");
+//#endif   assert(bucket_no >= 1);
+    TRACE("\"Getting Last Index\n\"");
     M_BIT_ARRAY_LENGTH_TYPE lastIndex = 0;
     lastIndex = (__MAX_ELEMS_IN_A_BUCKET * bucket_no) - 1;
     assert(lastIndex >= 0 && lastIndex <= ckFilter->__m_bit_arr_len_in_bytes - 1);
@@ -170,7 +190,10 @@ static FINGER_PRINT_TYPE __EMPTY_ELEMENT = 0;
 FINGER_PRINT_TYPE 
 __get_pearson_8_bit_finger_print(unsigned const char *key)
 {
-
+//#if TRACE
+    //printf("\n [TRACE] Calculating Finger-Print\n");
+//#endif
+ TRACE("\"Calculating Finger-Print\n\"");
  unsigned int index=0;
 
  //TO DO:- fix the hack.
@@ -239,6 +262,10 @@ FINGER_PRINT_TYPE finger_print = __pearson_substitution_table[key[0] % 256];
 M_BIT_ARRAY_LENGTH_TYPE 
 __murmur3_32_bit_hash(const char* key)
 {
+// #if TRACE
+    //printf("\n [TRACE] Calculating Hash Code\n");
+//#endif
+    TRACE("\"Calculating Hash Code\n\"");
     static const u_int32_t c1 = 0xcc9e2d51;
     static const u_int32_t c2 = 0x1b873593;
     static const u_int32_t r1 = 15;
@@ -304,6 +331,10 @@ __murmur3_32_bit_hash(const char* key)
 */
 short __is_bucket_empty(const struct  __cuckoo_filter *my_filter, const M_BIT_ARRAY_LENGTH_TYPE bucket_no, M_BIT_ARRAY_LENGTH_TYPE * indexOfEmptyElement)
 {
+// #if TRACE
+    //printf("\n [TRACE] Checking for Empty Bucket\n");
+//#endif
+    TRACE("\"Checking for Empty Bucket\n\"");
     assert(my_filter->__m_bit_finger_print_array);
    
     //get starting index of bucket in the given filter...
@@ -321,9 +352,15 @@ short __is_bucket_empty(const struct  __cuckoo_filter *my_filter, const M_BIT_AR
         {
             //set insertion index to this index value..
             *indexOfEmptyElement = iterIndex;
+#if DEBUG
+            printf("\n The filter named '%s' has an empty free in the bucket number '%d'\n",my_filter->__name,bucket_no);
+#endif
             return 1;//Bucket entry is empty
         }
     }
+#if DEBUG
+    printf("\n The filter named '%s' has no free space in the bucket number '%d'\n", my_filter->__name,bucket_no);
+#endif
     *indexOfEmptyElement = 0;
     return 0;//Bucket entry is not empty
 
@@ -339,7 +376,10 @@ short __is_bucket_empty(const struct  __cuckoo_filter *my_filter, const M_BIT_AR
 FINGER_PRINT_TYPE 
 __get_finger_print(const char* key)
 {
-  //User pearsons hashing technique for generating the 8-bit fingerprint for given key.
+// #if TRACE
+    //printf("\n [TRACE] Getting Finger-Print\n");
+//#endif //User pearsons hashing technique for generating the 8-bit fingerprint for given key.
+  TRACE("\"Getting Finger-Print\n\"");
   if(NULL == key)
     return 0;
   return __get_pearson_8_bit_finger_print(key);
@@ -355,6 +395,10 @@ __get_finger_print(const char* key)
 M_BIT_ARRAY_LENGTH_TYPE 
 __get_hash_1(const char* key)
 {
+//#if TRACE
+    //printf("\n [TRACE] Getting First Hash\n");
+//#endif
+    TRACE("\"Getting First Hash\n\"");
     if(NULL == key)
         return 0;
     return __murmur3_32_bit_hash(key);
@@ -371,6 +415,10 @@ __get_hash_1(const char* key)
 M_BIT_ARRAY_LENGTH_TYPE 
 __get_hash_2(FINGER_PRINT_TYPE finger_print, M_BIT_ARRAY_LENGTH_TYPE hash1)
 {
+// #if TRACE
+    //printf("\n [TRACE] Getting Second Hash\n");
+//#endif
+     TRACE("\"Getting Second Hash\n\"");
     //return hash1 XOR __get_hash_1(finger_print)
     return (hash1 ^ __get_hash_1(finger_print));
 }
@@ -386,7 +434,11 @@ __get_hash_2(FINGER_PRINT_TYPE finger_print, M_BIT_ARRAY_LENGTH_TYPE hash1)
 short 
 __create_cuckoo_filter(const char* __name, const int __total_no_of_elems_allowed)
 {
-    //Check if the cuckoo filter can be created.
+//#if TRACE
+    //printf("\n [TRACE] Creating Cuckoo Filter Named '%s' \n",__name);
+//#endif
+    TRACE("\"Creating Cuckoo Filter.\n\"");
+   //Check if the cuckoo filter can be created.
     //The max number of cuckoo filters that can be created depends on the amount of memory already allocated.
     //i.e. the total memory utilized by all cuckoo filters must not exceed 512MB (because my machine has RAM of 1GB only.
     //So if utilized memory is greater than 512MB, dont allocate/create any more filter.
@@ -448,6 +500,7 @@ __create_cuckoo_filter(const char* __name, const int __total_no_of_elems_allowed
 struct __cuckoo_filter * 
 __get_filter_by_id(const M_BIT_ARRAY_LENGTH_TYPE id)
 {
+    TRACE("\"Finding Filter by ID\n\"");
     if(NULL == __cuckoo_filter_list )
        return 0;//Cuckoo filter list is empty.. return NULL.
     else
@@ -473,6 +526,7 @@ __get_filter_by_id(const M_BIT_ARRAY_LENGTH_TYPE id)
 struct __cuckoo_filter * 
 __get_filter_by_name(const char* name)
 {
+    TRACE("\"Finding FIlter By Name\n\"");
     if(NULL == __cuckoo_filter_list )
        return NULL;//Cuckoo filter list is empty.. return NULL.
     else
@@ -499,6 +553,7 @@ __get_filter_by_name(const char* name)
 short 
 __insert_element(const char* name,const char* key)
 {
+    TRACE("\"Adding Element to Filter\n\"");
     if(NULL == name || NULL == key)
         return 0;
     
@@ -601,6 +656,7 @@ __insert_element(const char* name,const char* key)
 short 
 __check_element(const char* name, const char* key)
 {
+    TRACE("\"Checking Element Existence.\n\"");
 }
 
 
@@ -615,7 +671,7 @@ __check_element(const char* name, const char* key)
 short
 __remove_element(const char* name, const char* key)
 {
-
+    TRACE("\"Removing the element\n\"");
 }
 
 /*
@@ -628,6 +684,7 @@ __remove_element(const char* name, const char* key)
 short 
 __remove_cuckoo_filter(const char* __name)
 {
+     TRACE("\"Removing Filter\n\"");
     //Remove the cuckoo_filter_structure from the array
     struct __cuckoo_filter* temp = __get_filter_by_name (__name);
     if(NULL == temp)
@@ -717,6 +774,7 @@ __remove_cuckoo_filter(const char* __name)
 short 
 add_cuckoo_filter(const char* name,const unsigned int m_bit_array_length_in_bits)
 {
+    TRACE("\"Adding cuckoo filter.\n\"");
     if(NULL == name || m_bit_array_length_in_bits <= 0 
         || (strnlen(name,MAX_CUCKOO_FILTER_NAME_LENGTH-1)
         >= (MAX_CUCKOO_FILTER_NAME_LENGTH-1))
@@ -740,6 +798,7 @@ add_cuckoo_filter(const char* name,const unsigned int m_bit_array_length_in_bits
 short 
 add_element(const char* name,const char* key)
 {
+    TRACE("\"Adding element to cuckoo filter\n\"");
     if(NULL == name || NULL == key)
         return 0;
     return __insert_element(name,key);    
@@ -758,6 +817,7 @@ add_element(const char* name,const char* key)
 short 
 is_member(const char* name, const char* key)
 {
+    TRACE("\"Checking if element is member of filter.\n\"");
     return 0;
 }
 
@@ -773,6 +833,7 @@ is_member(const char* name, const char* key)
 short 
 delete_element(const char* name, const char* key)
 {
+    TRACE("\"Deleting element from filter\n\"");
     return 0;
 }
 
@@ -787,6 +848,8 @@ delete_element(const char* name, const char* key)
 short 
 delete_cuckoo_filter(const char* name)
 {
+    TRACE("\"Deleting filter.\n\"");
+ 
     if(NULL == name)
         return 0;
 
