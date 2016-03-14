@@ -5,4 +5,4 @@ Currently only tested on Ubuntu Operating system.
 The following are the compilation options..
 gcc -g -c -D __TRACE -D __DEBUG cuckoo_filter.c
 ar rvs cuckoo_filter.a cuckoo_filter.o
-gcc -g -D __TRACE -D __DEBUG -lm cuckoo_filter.a test_cuckoo_filter.c
+gcc -g -D __TRACE -D __DEBUG -lm test_cuckoo_filter.c cuckoo_filter.a
