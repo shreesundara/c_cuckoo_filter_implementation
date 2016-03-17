@@ -8,7 +8,8 @@ typedef enum user_options
     INSERT_KEY_INTO_FILTER,
     CHECK_IF_KEY_EXISTS,
     DELETE_KEY_FROM_FILTER,
-    DELETE_CUCKOO_FILTER
+    DELETE_CUCKOO_FILTER,
+    DISPLAY_FILTERS_LIST,
 }USER_OPTIONS;
 
 
@@ -19,26 +20,31 @@ int main()
     unsigned int quit = 0;
     char cuck_name[32];
     char key[1024];
+    long long unsigned int filter_size = 0;
 
     do
     {
         printf("\nEnter \
 \n\t%d --> Create Cuckoo Filter\n \
 \t%d --> Insert Element into Filter\n \
+\t%d --> Check for Element in Filter\n \
 \t%d --> Delete Element from Filter\n \
 \t%d --> Delete Cuckoo Filter\n \
+\t%d --> Display Cuckoo Filters List\n \
 \t%d --> EXIT\n:",\
                 CREATE_CUCKOO_FILTER,\
                 INSERT_KEY_INTO_FILTER,\
                 CHECK_IF_KEY_EXISTS,\
                 DELETE_KEY_FROM_FILTER,\
                 DELETE_CUCKOO_FILTER,\
+                DISPLAY_FILTERS_LIST,\
                 NONE\
                 );
         scanf("%d",&option);
 
         cuck_name[0] ='\0';
         key[0] = '\0';
+        filter_size = 0;
 
         switch(option)
         {
@@ -49,8 +55,8 @@ int main()
                 //gets(cuck_name);
                 printf("\nEnter the size (total no of elements to be inserted) into the cuckoo filter.");
                 //gets(key);
-                scanf("%s",&key);
-                add_cuckoo_filter(cuck_name,atoi(key));
+                scanf("%d",&filter_size );
+                add_cuckoo_filter(cuck_name,filter_size );
                 break;
 
             case INSERT_KEY_INTO_FILTER :
@@ -94,6 +100,9 @@ int main()
                 delete_cuckoo_filter(cuck_name);
                 break;
 
+            case DISPLAY_FILTERS_LIST :
+                 view_all_filters_details();
+                 break;
             case NONE :
                 printf("\n Exiting....\n");
                 quit = 1;

@@ -125,7 +125,7 @@ M_BIT_ARRAY_LENGTH_TYPE __murmur3_32_bit_hash(const char *key);
 FINGER_PRINT_TYPE __get_finger_print(const char* key);
 M_BIT_ARRAY_LENGTH_TYPE __get_hash_1(const char* key);
 M_BIT_ARRAY_LENGTH_TYPE __get_hash_2(FINGER_PRINT_TYPE finger_print, M_BIT_ARRAY_LENGTH_TYPE hash1);
-short __create_cuckoo_filter(const char* __name, const int __total_no_of_elems_allowed);
+short __create_cuckoo_filter(const char* __name, const long long unsigned int __total_no_of_elems_allowed);
 struct __cuckoo_filter * __get_filter_by_id(const M_BIT_ARRAY_LENGTH_TYPE id);
 struct __cuckoo_filter * __get_filter_by_name(const char* name);
 short __insert_element(const char* name,const char* key);
@@ -141,12 +141,15 @@ M_BIT_ARRAY_LENGTH_TYPE __getLastIndexOfTheBucket(const struct __cuckoo_filter *
 //TO DO :- Add utility functions that display the parameters of the cuckoo filter i.e. like the contents of the filter, the % of space utilized, filter name, total size of cuckoo filter, no.. of buckets in cuckoo filter, size of each bucket of cuckoo filter etc..
 
 /*List of explicit functions (exposed to user)*/
+//These are already inside .h file. So need not have them here again.
+/*
 short add_cuckoo_filter(const char* name,const unsigned int m_bit_array_length_in_bits);
 short add_element(const char* name,const char* key);
 short is_member(const char* name, const char* key);
 short delete_element(const char* name, const char* key);
 short delete_cuckoo_filter(const char* name);
-
+void view_all_filters_details();
+*/
 
 /********************  FUNCTIONS NOT EXPOSED TO EXTERNAL SOURCES  *************************/
 
@@ -159,22 +162,22 @@ void
 __print_list_of_filters()
 {
 	PRINT_TRACE("Listing Cuckoo-Filters");
-	PRINT_DEBUG("***************** LIST OF CUCKOO-FILTERS *****************************");
+	PRINT_DEBUG("\n***************** LIST OF CUCKOO-FILTERS *****************************");
 	
 	if(NULL == __cuckoo_filter_list)
 	{
 		PRINT_DEBUG("Cuckoo filters are not created");
 	}
 
-	sprintf(temp_char_arr,"Total number of cuckoo filters are : %u",cuckoo_filters_count);
+	sprintf(temp_char_arr,"Total number of cuckoo filters are : %u",cuckoo_filters_count-1);
 	PRINT_DEBUG(temp_char_arr);
 
-	sprintf(temp_char_arr,"Total Memory allocated to all cuckoo filters is : %u",total_bits_in_all_filters);
+	sprintf(temp_char_arr,"Total Memory allocated (In bits) to all cuckoo filters is : %u bits (%u MB)",total_bits_in_all_filters,(total_bits_in_all_filters/(1024*1024*8)));
 	PRINT_DEBUG(temp_char_arr);
 
 	__print_all_filter_details();
 
-	PRINT_DEBUG("***************** LIST OF CUCKOO-FILTERS *****************************");
+	PRINT_DEBUG("\n***************** LIST OF CUCKOO-FILTERS *****************************");
 }
 
 /*
@@ -194,14 +197,14 @@ __print_filter_details(const struct __cuckoo_filter* filter)
 		PRINT_DEBUG("Invalid filter");
 		return;
 	}
-	PRINT_DEBUG("******************** FILTER-DETAILS ****************");
+	PRINT_DEBUG("\n******************** FILTER-DETAILS ****************");
 
 	sprintf(temp_char_arr,"\nFilter Name : %s\n Filter Size : %u (In Bytes)\n #Buckets : %u (%u elements(bytes)/bucket)\n"
 				,filter->__name,filter->__m_bit_arr_len_in_bytes,filter->__total_no_of_buckets,__MAX_ELEMS_IN_A_BUCKET);
 	PRINT_DEBUG(temp_char_arr);
 
 
-	PRINT_DEBUG("******************** FILTER-DETAILS ****************");
+	PRINT_DEBUG("\n******************** FILTER-DETAILS ****************");
 	return;
 }
 
@@ -228,6 +231,7 @@ __print_all_filter_details()
 	while(NULL != temp)
 	{
 		__print_filter_details(temp);
+		temp = temp->next;
 	}
 	return;
 }
@@ -603,7 +607,7 @@ __get_hash_2(FINGER_PRINT_TYPE finger_print, M_BIT_ARRAY_LENGTH_TYPE hash1)
              0 - If cuckoo filter creation fails.
 */
 short 
-__create_cuckoo_filter(const char* __name, const int __total_no_of_elems_allowed)
+__create_cuckoo_filter(const char* __name, const long long unsigned int __total_no_of_elems_allowed)
 {
 //#if PRINT_TRACE
     //printf("\n [PRINT_TRACE] Creating Cuckoo Filter Named '%s' \n",__name);
@@ -622,10 +626,24 @@ __create_cuckoo_filter(const char* __name, const int __total_no_of_elems_allowed
     //The max number of cuckoo filters that can be created depends on the amount of memory already allocated.
     //i.e. the total memory utilized by all cuckoo filters must not exceed 512MB (because my machine has RAM of 1GB only.
     //So if utilized memory is greater than 512MB, dont allocate/create any more filter.
-    M_BIT_ARRAY_LENGTH_TYPE m_bit_size = __total_no_of_elems_allowed * 8;//Total no of elements * bits reqd for each element (for storing 8-bit fingerprint value)
+    long long unsigned int m_bit_size = __total_no_of_elems_allowed * 8;//Total no of elements * bits reqd for each element (for storing 8-bit fingerprint value)
 
-    if((total_bits_in_all_filters + m_bit_size) > __MAX_SUM_OF_BITS_OF_ALL_CUCKOO_FILTERS)
+    sprintf(temp_char_arr,
+"\nMax bits allowed is : %llu\n \
+and individual reqd memory is %llu\n \
+and total memory already allocated is %llu\n \
+That will be allocated in bits is %llu",
+    					(long long unsigned int)__MAX_SUM_OF_BITS_OF_ALL_CUCKOO_FILTERS,
+    					(long long unsigned int) m_bit_size,
+    					(long long unsigned int)total_bits_in_all_filters,
+    					(long long unsigned int)(total_bits_in_all_filters + m_bit_size));
+    PRINT_DEBUG(temp_char_arr);
+
+    if((long long unsigned int)(total_bits_in_all_filters + m_bit_size) > (long long unsigned int)__MAX_SUM_OF_BITS_OF_ALL_CUCKOO_FILTERS)
+    {
+    	PRINT_DEBUG("Cannot create filter. Memory request exceeded the limit");
         return 0;//Cannot create a cuckoo filter, memory request exceeds the maximum limit.
+    }
 
     //Create cuckoo_filter_structure.
     struct __cuckoo_filter *new_filter = (struct __cuckoo_filter *)malloc(sizeof(struct __cuckoo_filter));
@@ -1059,6 +1077,8 @@ __remove_cuckoo_filter(const char* __name)
         free(temp->__m_bit_finger_print_array);
         temp->__m_bit_finger_print_array = NULL;
 
+        total_bits_in_all_filters -= temp->__m_bit_arr_len_in_bytes * 8;
+
         //Now free the memory allocated to the filter itself.
         free(temp);
         temp = NULL;
@@ -1066,7 +1086,6 @@ __remove_cuckoo_filter(const char* __name)
         cuckoo_filters_count--;
         assert(cuckoo_filters_count > 0);
 
-        total_bits_in_all_filters -= temp->__m_bit_arr_len_in_bytes * 8;
         assert(total_bits_in_all_filters >= 0);
 
         __print_list_of_filters();
@@ -1085,7 +1104,7 @@ __remove_cuckoo_filter(const char* __name)
         Returns 1 if cuckoo filter creation is successful.
 */
 short 
-add_cuckoo_filter(const char* name,const unsigned int m_bit_array_length_in_bits)
+add_cuckoo_filter(const char* name,const long long unsigned int m_bit_array_length_in_bits)
 {
     PRINT_TRACE("\"Adding cuckoo filter.\"");
     if(NULL == name || m_bit_array_length_in_bits <= 0 
@@ -1175,3 +1194,10 @@ delete_cuckoo_filter(const char* name)
     return __remove_cuckoo_filter(name);
 }
 
+
+void 
+view_all_filters_details()
+{
+	__print_list_of_filters();	
+	return;
+}
