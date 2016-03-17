@@ -6,6 +6,7 @@ typedef enum user_options
     NONE = 0,
     CREATE_CUCKOO_FILTER,
     INSERT_KEY_INTO_FILTER,
+    CHECK_IF_KEY_EXISTS,
     DELETE_KEY_FROM_FILTER,
     DELETE_CUCKOO_FILTER
 }USER_OPTIONS;
@@ -16,6 +17,8 @@ int main()
     printf("\n********************Testing Cuckoo Filter Implementation****************\n");
     USER_OPTIONS option = NONE;
     unsigned int quit = 0;
+    char cuck_name[32];
+    char key[1024];
 
     do
     {
@@ -27,28 +30,68 @@ int main()
 \t%d --> EXIT\n:",\
                 CREATE_CUCKOO_FILTER,\
                 INSERT_KEY_INTO_FILTER,\
+                CHECK_IF_KEY_EXISTS,\
                 DELETE_KEY_FROM_FILTER,\
                 DELETE_CUCKOO_FILTER,\
                 NONE\
                 );
         scanf("%d",&option);
 
+        cuck_name[0] ='\0';
+        key[0] = '\0';
+
         switch(option)
         {
             case CREATE_CUCKOO_FILTER :
-                add_cuckoo_filter("cuckoo_name",10);
+                //add_cuckoo_filter("cuckoo_name",10);
+                printf("\nEnter the name of cuckoo filter");
+                scanf("%s",&cuck_name);
+                //gets(cuck_name);
+                printf("\nEnter the size (total no of elements to be inserted) into the cuckoo filter.");
+                //gets(key);
+                scanf("%s",&key);
+                add_cuckoo_filter(cuck_name,atoi(key));
                 break;
 
             case INSERT_KEY_INTO_FILTER :
-                add_element("cuckoo_name","elem_1");
+                //add_element("cuckoo_name","elem_1");
+                printf("\nEnter the name of cuckoo filter");
+                scanf("%s",&cuck_name);
+                //gets(cuck_name);
+                printf("\nEnter the key to be inserted");
+                scanf("%s",&key);
+                //gets(key);
+                add_element(cuck_name,key);
+                break;
+
+            case CHECK_IF_KEY_EXISTS :
+                //is_member("cuckoo_name",10);
+                printf("\nEnter the name of cuckoo filter");
+                scanf("%s",&cuck_name);
+                //gets(cuck_name);
+                printf("\nEnter the key to be checked for its existence");
+                scanf("%s",&key);
+                //gets(key);
+                is_member(cuck_name,key);
                 break;
 
             case DELETE_KEY_FROM_FILTER :
-                delete_element("cuckoo_name","elem_2");
+                //delete_element("cuckoo_name","elem_2");
+                printf("\nEnter the name of cuckoo filter");
+                //gets(cuck_name);
+                scanf("%s",&cuck_name);
+                printf("\nEnter the key to be deleted");
+                scanf("%s",&key);
+                //gets(key);
+                delete_element(cuck_name,key);
                 break;
 
             case DELETE_CUCKOO_FILTER :
-                delete_cuckoo_filter("cuckoo_name");
+                //delete_cuckoo_filter("cuckoo_name");
+                printf("\nEnter the name of cuckoo filter");
+                scanf("%s",&cuck_name);
+                //gets(cuck_name);
+                delete_cuckoo_filter(cuck_name);
                 break;
 
             case NONE :
@@ -64,3 +107,4 @@ int main()
     }while(!quit);
 
 }//end of main function.
+
