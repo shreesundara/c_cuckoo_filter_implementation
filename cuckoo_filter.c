@@ -81,7 +81,7 @@ char temp_char_arr[1024];
 /*A bucket can hold a  max of 8 entries/elements (elements conatin 1 finger-print(8-bit) each.*/
 #define __MAX_ELEMS_IN_A_BUCKET 8
 
-#define __MAX_CUCKOO_KICKS 100
+#define __MAX_CUCKOO_KICKS 500
 
 /*
     The internal structure that holds the information about all the cuckoo filters.
@@ -374,6 +374,8 @@ __getLastIndexOfTheBucket(const struct __cuckoo_filter * const ckFilter, M_BIT_A
     PRINT_TRACE("Getting Last Index");
     M_BIT_ARRAY_LENGTH_TYPE lastIndex = 0;
     lastIndex = (__MAX_ELEMS_IN_A_BUCKET * bucket_no) - 1;
+    if(lastIndex >= ckFilter->__m_bit_arr_len_in_bytes)
+        lastIndex = ckFilter->__m_bit_arr_len_in_bytes - 1;
     //assert(lastIndex >= 0 && lastIndex <= ckFilter->__m_bit_arr_len_in_bytes - 1);//The second condition is not true always.
     assert(lastIndex >= 0);
     sprintf(temp_char_arr,"last index of bucket %d is %d",bucket_no,lastIndex);
@@ -869,7 +871,7 @@ __insert_element(const char* name,const char* key)
         PRINT_DEBUG(temp_char_arr);
         
         M_BIT_ARRAY_LENGTH_TYPE * randomlyChosenBucket = NULL;
-        unsigned int cuckoo_kick_count = 0;
+        unsigned int cuckoo_kick_count = 0, actualElemsInBucket = 0;
         M_BIT_ARRAY_LENGTH_TYPE randomlySelectedIndex = 0;
         FINGER_PRINT_TYPE tempFingerPrint = 0;
         unsigned short randomNumber = 0;
@@ -886,7 +888,15 @@ __insert_element(const char* name,const char* key)
         for(cuckoo_kick_count = 1; cuckoo_kick_count <= __MAX_CUCKOO_KICKS; cuckoo_kick_count++)
         {
             //select a random element from the bucket and swap it with current cuckoo filter.
-            randomNumber = rand()%__MAX_ELEMS_IN_A_BUCKET;
+            actualElemsInBucket = __getLastIndexOfTheBucket(filter,*(randomlyChosenBucket)) - __getFirstIndexOfTheBucket(filter, *(randomlyChosenBucket));
+            if( actualElemsInBucket == __MAX_ELEMS_IN_A_BUCKET )
+            {
+                randomNumber = rand()%__MAX_ELEMS_IN_A_BUCKET;
+            }
+            else
+            {
+                randomNumber = rand()%actualElemsInBucket;
+            }
             sprintf(temp_char_arr,"Randomly Chosen entry in the selected bucket is : %d",randomNumber);
             PRINT_DEBUG(temp_char_arr);
 

@@ -5,9 +5,8 @@
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-
-#define PRINT_TEST_CASE_PASS(x) print(ANSI_COLOR_GREEN x ANSI_COLOR_RESET)
-#define PRINT_TEST_CASE_FAIL(x) print(ANSI_COLOR_RED x ANSI_COLOR_RESET)
+#define PRINT_TEST_CASE_PASS(x) printf(ANSI_COLOR_GREEN); printf(x); printf(ANSI_COLOR_RESET)
+#define PRINT_TEST_CASE_FAIL(x) printf(ANSI_COLOR_RED); printf(x); printf(ANSI_COLOR_RESET)
 
 char print_arr[1024];
 
@@ -51,7 +50,7 @@ test_positive_test_cases()
 	else
 	{
 		//printf(ANSI_COLOR_GREEN"\n\t\t\tTest Case Passed : \"Succesfully created a valid filter '%s' with valid size '%d'.\"\n"ANSI_COLOR_RESET,filter_name,filter_size);
-		sprintf(print_arr,"\n\t\t\tTest Case Passed : \"Succesfully created a valid filter '%s' with valid size '%d'.\"\n",filter_name,filter_size);,"\n\t\t\tTest Case Passed : \"Succesfully created a valid filter '%s' with valid size '%d'.\"\n"ANSI_COLOR_RESET,filter_name,filter_size);
+		sprintf(print_arr,"\n\t\t\tTest Case Passed : \"Succesfully created a valid filter '%s' with valid size '%d'.\"\n",filter_name,filter_size);
 		PRINT_TEST_CASE_PASS(print_arr);
 	}
 	
@@ -70,7 +69,7 @@ test_positive_test_cases()
 	actual_return_status = add_element(filter_name,key);
 	if(actual_return_status != expected_return_status)
 	{
-		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Failed to add valid element '%s' to a valid filter '%s' \"\n",key,filter_name);\
+		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Failed to add valid element '%s' to a valid filter '%s' \"\n",key,filter_name);
 		PRINT_TEST_CASE_FAIL(print_arr);
 	}
 	else
@@ -216,9 +215,9 @@ test_negative_test_cases()
 
 	//Create existing filter. check test result.
 	remove_all_filters();
-	strncpy(filter_name,"NULL",18);
-	filter_name[17] = '\0';
-	filter_size = 1 ;
+	strncpy(filter_name,"asde",4);
+	filter_name[5] = '\0';
+	filter_size = 2 ;
 	sprintf(test_case_descr,"Negative Test Case : %d  --> Re-Create an existing filter with name %s and size %d.",test_case_count++,filter_name,filter_size);
 	printf("\n%s\n",test_case_descr);
 	//NOTE :- The following lines are not redundant. DO NOT REMOVE FOLLOWING LINES.
@@ -226,12 +225,14 @@ test_negative_test_cases()
 	actual_return_status = add_cuckoo_filter(filter_name,filter_size);
 	if(actual_return_status != expected_return_status)
 	{
-		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Filter with Duplicate name '%s' was created.\"\n",filter_name);
+		//sprintf(print_arr,"\n\tTest Case Failed : \"Filter with Duplicate name '%s' was created.\"\n",filter_name);
+		sprintf(print_arr,"\n\tTest Case Failed ");
 		PRINT_TEST_CASE_FAIL(print_arr);
 	}
 	else
 	{
-		sprintf("\n\t\t\tTest Case Passed : \"Filter with Duplicate name '%s' is not created.\"\n",filter_name);
+		//sprintf(print_arr,"\n\tsTest Case Passed : \"Filter with Duplicate name '%s' is not created.\"\n",filter_name);
+		sprintf(print_arr,"\n\tsTest Case Passed ");
 		PRINT_TEST_CASE_PASS(print_arr);
 	}
 
@@ -313,11 +314,13 @@ test_negative_test_cases()
 	actual_return_status = delete_element(filter_name,key);
 	if(actual_return_status != expected_return_status)
 	{
-		printf("\n\t\t\tTest Case Failed : \"Deleted an element '%s' from non-existing filter '%s' \"\n",key,filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Deleted an element '%s' from non-existing filter '%s' \"\n",key,filter_name);
+		PRINT_TEST_CASE_FAIL(print_arr);
 	}
 	else
 	{
-		printf("\n\t\t\tTest Case Passed : \"Could not delete an element '%s' from non-existing filter '%s'\"\n",key,filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Passed : \"Could not delete an element '%s' from non-existing filter '%s'\"\n",key,filter_name);
+		PRINT_TEST_CASE_PASS(print_arr);
 	}
 	key[0] = '\0';	
 
@@ -331,11 +334,13 @@ test_negative_test_cases()
 	actual_return_status = delete_cuckoo_filter(filter_name);
 	if(actual_return_status != expected_return_status)
 	{
-		printf("\n\t\t\tTest Case Failed : \"Deleted non-existing filter '%s' \"\n",filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Deleted non-existing filter '%s' \"\n",filter_name);
+		PRINT_TEST_CASE_FAIL(print_arr);
 	}
 	else
 	{
-		printf("\n\t\t\tTest Case Passed : \"Could not delete non-existing filter '%s'\"\n",filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Passed : \"Could not delete non-existing filter '%s'\"\n",filter_name);
+		PRINT_TEST_CASE_PASS(print_arr);
 	}	
 
 
@@ -354,11 +359,13 @@ test_negative_test_cases()
 	actual_return_status = is_member(filter_name,key);
 	if(actual_return_status != expected_return_status)
 	{
-		printf("\n\t\t\tTest Case Failed : \"Found non-existing element in  '%s' in a valid existing filter '%s' \"\n",key,filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Found non-existing element in  '%s' in a valid existing filter '%s' \"\n",key,filter_name);
+		PRINT_TEST_CASE_FAIL(print_arr);
 	}
 	else
 	{
-		printf("\n\t\t\tTest Case Passed : \"Could not find non-existing element '%s' in a valid existing filter '%s'\"\n",key,filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Passed : \"Could not find non-existing element '%s' in a valid existing filter '%s'\"\n",key,filter_name);
+		PRINT_TEST_CASE_PASS(print_arr);
 	}
 
 
@@ -373,11 +380,13 @@ test_negative_test_cases()
 	actual_return_status = is_member(filter_name,key);
 	if(actual_return_status != expected_return_status)
 	{
-		printf("\n\t\t\tTest Case Failed : \"Found an element '%s' in non-existing filter '%s' \"\n",key,filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Failed : \"Found an element '%s' in non-existing filter '%s' \"\n",key,filter_name);
+		PRINT_TEST_CASE_FAIL(print_arr);
 	}
 	else
 	{
-		printf("\n\t\t\tTest Case Passed : \"Could not find an element '%s' in non-existing filter '%s'\"\n",key,filter_name);
+		sprintf(print_arr,"\n\t\t\tTest Case Passed : \"Could not find an element '%s' in non-existing filter '%s'\"\n",key,filter_name);
+		PRINT_TEST_CASE_PASS(print_arr);
 	}
 
 	printf("\n**************** STARTED AUTOMATIC TESTING. TESTING FOR NEGATIVE TEST CASES ***************\n");	
