@@ -1,0 +1,200 @@
+<!doctype html>
+    <html>
+        <head>
+            <title>Cuckoo vs Bloom Performance Visualizer</title>
+            <script type="text/javascript" src="./Chart.js"></script>
+			<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> 
+			 <script src="http://jquery-csv.googlecode.com/git/src/jquery.csv.js"></script> -->
+			<script src="./jquery-2.2.3.min.js"></script>
+			<script src="./jquery.csv.js"></script>
+			<script src="./jquery.csv.min.js"></script>
+			<style >
+				.chart-legend li span{
+														display: inline-block;
+														width: 12px;
+														height: 12px;
+														margin-right: 5px;
+													}
+			</style>
+	 </head>
+
+        <body>
+			<input type="file" id="files" name="files" multiple/>
+			<output id="list"></output>		
+			<div>
+				<section>
+					<article>
+						<canvas id="myChart" width="500" height="500">
+						</canvas>
+						<div id="chart-legend" class="chart-legend">
+						</div>
+					</article>
+				</section>
+			</div>
+            <script type="text/javascript">
+			 var responseCount = 0;
+			 var csv_content1, csv_content2;
+			 var y_label1,y_label2;
+			  function handleFileSelect(evt) {
+			  
+				  responseCount = 0;
+				  csv_content1 = 0;
+				  csv_content2 = 0;
+				  y_label2 = 0;
+				  y_label1 = 0;
+					var files = evt.target.files; // FileList object
+					if(files.length != 2)
+					{
+						alert("select only two csv files");
+						return;
+					}
+					// files is a FileList of File objects. List some properties.
+					var output = [];
+					var f1 = files[0];
+					var f2 = files[1];
+					if(f1.name.substr(f1.name.length-4) != ".csv" || f2.name.substr(f2.name.length-4) != ".csv")
+					{
+						alert("select valid .csv files only");
+						return;
+					}
+					
+					if(f1.size != f2.size)
+					{
+						alert("Select similar files, size should be the same");
+						return;
+					}
+					
+					alert("you have selected valid files haha hahaha ");
+					for (var i = 0; i<2; i++) {
+					output.push('<li><strong>', escape(files[i].name), '</strong> (', files[i].type || 'n/a', ') - ',
+							 files[i].size, ' bytes, last modified: ',
+							 files[i].lastModifiedDate ? files[i].lastModifiedDate.toLocaleDateString() : 'n/a',
+							  '</li>');
+					}
+					document.getElementById("list").innerHTML = '<ul>' + output.join('') + '</ul>';
+
+					var reader1 = new FileReader();
+					var reader2 = new FileReader();
+					
+					// Closure to capture the file information.
+					reader1.onload = (function(theFile) {
+					return function(e) {
+					  // Render content.
+					  /*var span = document.createElement('span');
+					  span.innerHTML = ['<p>', e.target.result,
+										'</p>'].join('');
+					  document.getElementById('list').insertBefore(span, null);
+					  */
+						responseCount = responseCount + 1;
+						csv_content1 = e.target.result;
+						//y_label1 = e.target.name;
+						alert("csv_content is " + csv_content1);
+						if(responseCount == 2)
+							populate_dataset(csv_content1,csv_content2);
+										  
+					};
+					})(f1);
+
+					reader2.onload = (function(theFile) {
+					return function(e) {
+					  // Render content.
+					  /*var span = document.createElement('span');
+					  span.innerHTML = ['<p>', e.target.result,
+										'</p>'].join('');
+					  document.getElementById('list').insertBefore(span, null);
+					  */
+						responseCount = responseCount + 1;
+						csv_content2 = e.target.result;
+						//y_label2 = e.target.name;
+						alert("csv_content is " + csv_content2);
+						if(responseCount == 2)
+							populate_dataset(csv_content1,csv_content2);
+										  
+					};
+					})(f2);
+
+					
+					// Read in the image file as a data URL.
+					reader1.readAsText(f1);
+					y_label1 = f1.name;
+					reader2.readAsText(f2)
+					y_label2 = f2.name;
+			  }
+
+			  /*function afterLoadingFile(evt)
+			  {
+					alert("before global var " + globalVariables);
+					globalVariables = 2;
+					alert("after global var " + globalVariables);
+					//alert("After loading file");
+			  }*/
+			 function populate_dataset(csv_content1,csv_content2)
+			{
+				alert("Populating data set and response count is : " +responseCount);
+				if(responseCount != 2)
+				{
+					alert("did not get complete response. not doing anything.");
+					console.log("did not get complete response.");
+					console.log("content 1 is "+csv_content1 + "  content 2 is " + csv_content2);
+					return;
+				}
+				console.log("content 1 is "+csv_content1 + "  content 2 is " + csv_content2);
+				var x_labels = [];
+				var y_data1 = [];
+				var y_data2 = [];
+				var cuckoo_data_1 = $.csv.toArrays(csv_content1);
+				var cuckoo_data_2 = $.csv.toArrays(csv_content2);
+				if(cuckoo_data_1.length != cuckoo_data_2.length)
+				{
+					alert("you haven't selected 2 similar performance files (i.e. both insert performance or both must be cuckoo check performance");
+					return;
+				}
+				for (var i = 0; i < cuckoo_data_1.length; i++)
+				{
+					x_labels.push(cuckoo_data_1[i][0]);//inserting the 'x' values from common to both csv;
+					y_data1.push(cuckoo_data_1[i][1]);//inserting the 'y' values from 1st csv;
+					y_data2.push(cuckoo_data_2[i][1]);//inserting the 'y' values from 2nd csv;
+				}
+				
+				draw_graph(x_labels,y_data1,y_data2);
+			} 
+
+			function draw_graph(x_labels,y_data1,y_data2) {
+				data = {
+					//labels: ["January", "February", "March", "April", "May", "June", "July"],
+					//labels: [0,1,2,3,4,5,6,7,8,9],
+					labels : x_labels,
+					datasets: [
+						{
+							//fillColor: "rgba(0,255,0,0.5)",
+							fillColor: "rgba(76,175,80,0.2)",
+							strokeColor: "rgba(76,175,80,1)",
+							pointColor: "rgba(76,175,80,1)",
+							pointStrokeColor: "#fff",
+							//data: [65, 59, 90, 81, 56, 55, 40]
+							//data: [0.04,0.04,0.05,0.04,0.04,0.05,0.04,0.06,0.03,0.05]
+							data : y_data1,
+							label : y_label1
+						},
+						{
+							fillColor: "rgba(33,150,243,0.2)",
+							strokeColor: "rgba(33,150,243,1)",
+							pointColor: "rgba(33,150,243,1)",
+							pointStrokeColor: "#fff",
+							//data: [28, 48, 40, 19, 96, 27, 100]
+							//data: [0.04,0.04,0.10,0.08,0.08,0.06,0.10,0.07,0.08,0.07]
+							data : y_data2,
+							label : y_label2
+						}
+					]
+				}
+				var ctx = $("#myChart").get(0).getContext("2d");
+				var myNewChart = new Chart(ctx).Line(data);
+				document.getElementById("chart-legend").innerHTML = myNewChart.generateLegend();
+			}
+				
+			document.getElementById("files").addEventListener('change', handleFileSelect, false);
+			
+            </script>
+        </body>
+	</html>
