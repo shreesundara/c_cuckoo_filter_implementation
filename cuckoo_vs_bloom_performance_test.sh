@@ -120,4 +120,8 @@ echo "Deleting the cuckoo filter"
 echo "Deleting the bloom filter"
 ~/Desktop/Redis/redis/src/redis-cli del $BLOOM_FILTERNAME
 
+echo "Starting Visualizing the performance differences"
+firefox ./Visualize_cuckoo_vs_bloom_performance/visualize_cuckoo_vs_bloom_performance.html
+
+
 echo "***************************************************"
