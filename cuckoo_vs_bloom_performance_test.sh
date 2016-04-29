@@ -58,16 +58,27 @@ VALUE=0;
 #while [$ELEM_INSERTION_COUNT -lt 4000000000]
 
 #while [ $ELEM_INSERTION_COUNT -lt 524288 ] #524288 = 512KB
-while [ $ELEM_INSERTION_COUNT -lt 100 ] #524288 = 512KB
+echo "Initial test for insertion for cuckoo : "
+~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement $CUCKOO_FILTERNAME $VALUE
+
+
+echo "Initial test for insertion for bloom : "
+~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE
+
+while [ $ELEM_INSERTION_COUNT -lt 40 ] #524288 = 512KB
 do
 	echo "Inserting element NUMBER $ELEM_INSERTION_COUNT"
 	VALUE=`expr $VALUE + 2`
 
 	#echo "Inserting value $VALUE into cuckoo filter."
-	\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement $CUCKOO_FILTERNAME $VALUE
+	#\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement $CUCKOO_FILTERNAME $VALUE
+	tempTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement $CUCKOO_FILTERNAME $VALUE) 2>&1 1>/dev/null )" 
+	echo "$ELEM_INSERTION_COUNT,$tempTime" >> $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE
 
 	#echo "Inserting value $VALUE into bloom filter."
-	\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $BLOOM_INSERTION_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE	
+	#\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $BLOOM_INSERTION_EXEC_TIME_OUTPUT_FIL8E ~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE	
+	tempTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE) 2>&1 1>/dev/null)"
+	echo "$ELEM_INSERTION_COUNT,$tempTime" >> $BLOOM_INSERTION_EXEC_TIME_OUTPUT_FILE
 	
 	ELEM_INSERTION_COUNT=`expr $ELEM_INSERTION_COUNT + 1`
 done
@@ -77,16 +88,28 @@ done
 echo "Checking for element existence in bloom and cuckoo filters."
 ELEM_CHECK_COUNT=0;
 VALUE=0;
-while [ $ELEM_CHECK_COUNT -lt 50 ]
+
+echo "Initial test for Element existence for cuckoo : "
+~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement $CUCKOO_FILTERNAME $VALUE
+
+
+echo "Initial test for Element existence for bloom : "
+~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE
+
+while [ $ELEM_CHECK_COUNT -lt 40 ]
 do
 	echo "Checking iteration number : $ELEM_CHECK_COUNT"
 	VALUE=`expr $VALUE + 1`
 
 	#echo "Checking for value $VALUE in cuckoo filter."
-	\time -f "$ELEM_CHECK_COUNT,%e" -a -o $CUCKOO_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement $CUCKOO_FILTERNAME $VALUE
+	#\time -f "$ELEM_CHECK_COUNT,%e" -a -o $CUCKOO_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement $CUCKOO_FILTERNAME $VALUE
+        tempTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement $CUCKOO_FILTERNAME $VALUE) 2>&1 1>/dev/null)"
+        echo "$ELEM_CHECK_COUNT,$tempTime" >> $CUCKOO_ISMEMBER_EXEC_TIME_OUTPUT_FILE
 
 	#echo "Checking for value $VALUE in bloom filter."
-	\time -f "$ELEM_CHECK_COUNT,%e" -a -o $BLOOM_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE
+	#\time -f "$ELEM_CHECK_COUNT,%e" -a -o $BLOOM_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE
+        tempTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE) 2>&1 1>/dev/null)"
+        echo "$ELEM_CHECK_COUNT,$tempTime" >> $BLOOM_ISMEMBER_EXEC_TIME_OUTPUT_FILE
 
 	ELEM_CHECK_COUNT=`expr $ELEM_CHECK_COUNT + 1`
 done
