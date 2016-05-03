@@ -35,7 +35,7 @@ BLOOM_FILTERNAME="bf"
 #CUCKOO_FILTERSIZE=536870900 #no of elements , indirectly uses 512MB memory
 CUCKOO_FILTERSIZE=41943040 #40*1024*1024
 BLOOM_FILTERSIZE=41943040 #40*1024*1024
-BLOOM_HASH_FNS=10
+BLOOM_HASH_FNS=20
 
 echo "Removing cuckoo_timing files $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE and $CUCKOO_ISMEMBER_EXEC_TIME_OUTPUT_FILE"
 rm $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE
@@ -96,8 +96,8 @@ getCmdOutput "~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE
 sleep_before_reconnect=0.25;
 cuckoo_insert_time=0;
 bloom_insert_time=0;
-#while [ $ELEM_INSERTION_COUNT -le 50000 ] #524288 = 512KB
-while [ $ELEM_INSERTION_COUNT -le 50 ] #524288 = 512KB
+while [ $ELEM_INSERTION_COUNT -le 50000 ] #524288 = 512KB
+#while [ $ELEM_INSERTION_COUNT -le 50 ] #524288 = 512KB
 do
 	if [ 0 == `expr $ELEM_INSERTION_COUNT % 5` ]
 	then
@@ -129,8 +129,8 @@ do
 
 	sleep $sleep_before_reconnect #so that previous client connect will not affect us.
 
-	#if [ 0 == `expr $ELEM_INSERTION_COUNT % 1000` ]
-	if [ 0 == `expr $ELEM_INSERTION_COUNT % 10` ]
+	if [ 0 == `expr $ELEM_INSERTION_COUNT % 1000` ]
+	#if [ 0 == `expr $ELEM_INSERTION_COUNT % 10` ]
 	then
 		time1=$(echo "scale=5;$bloom_insert_time/$ELEM_INSERTION_COUNT" | bc)
 		echo "$ELEM_INSERTION_COUNT,$time1" >> $BLOOM_INSERTION_EXEC_TIME_OUTPUT_FILE
@@ -158,8 +158,8 @@ getCmdOutput "~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VAL
 
 cuckoo_check_time=0;
 bloom_check_time=0;
-#while [ $ELEM_CHECK_COUNT -le 40000 ]
-while [ $ELEM_CHECK_COUNT -le 40 ]
+while [ $ELEM_CHECK_COUNT -le 40000 ]
+#while [ $ELEM_CHECK_COUNT -le 40 ]
 do
         if [ 0 == `expr $ELEM_CHECK_COUNT % 5` ]
         then
@@ -189,8 +189,8 @@ do
         cuckoo_check_time=$(echo "scale=5;$cuckoo_check_time+$lastTime" | bc);
         #echo "time taken for cuckoo check is $cuckoo_check_time";
 
-	#if [ 0 == `expr $ELEM_CHECK_COUNT % 1000` ]
-	if [ 0 == `expr $ELEM_CHECK_COUNT % 10` ]
+	if [ 0 == `expr $ELEM_CHECK_COUNT % 1000` ]
+	#if [ 0 == `expr $ELEM_CHECK_COUNT % 10` ]
 	then
 	        time1=$(echo "scale=5;$bloom_check_time/$ELEM_CHECK_COUNT" | bc);
 	        echo "$ELEM_CHECK_COUNT,$time1" >> $BLOOM_ISMEMBER_EXEC_TIME_OUTPUT_FILE
