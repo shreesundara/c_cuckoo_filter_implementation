@@ -1,0 +1,285 @@
+[H[2J***************************************************
+The configuration on which the test script is run is shown below
+ccbd
+    description: Computer
+    product: VirtualBox ()
+    vendor: innotek GmbH
+    version: 1.2
+    serial: 0
+    width: 64 bits
+    capabilities: smbios-2.5 dmi-2.5 ldt16 vsyscall32
+    configuration: family=Virtual Machine uuid=159D019B-CB6C-466C-90ED-C00E17E6281F
+  *-core
+       description: Motherboard
+       product: VirtualBox
+       vendor: Oracle Corporation
+       physical id: 0
+       version: 1.2
+       serial: 0
+     *-firmware
+          description: BIOS
+          vendor: innotek GmbH
+          physical id: 0
+          version: VirtualBox
+          date: 12/01/2006
+          size: 128KiB
+          capabilities: isa pci cdboot bootselect int9keyboard int10video acpi
+     *-memory
+          description: System memory
+          physical id: 1
+          size: 7985MiB
+     *-cpu
+          product: Intel(R) Xeon(R) CPU E3-1220 v3 @ 3.10GHz
+          vendor: Intel Corp.
+          physical id: 2
+          bus info: cpu@0
+          width: 64 bits
+          capabilities: fpu fpu_exception wp vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 syscall nx rdtscp x86-64 constant_tsc rep_good nopl pni monitor ssse3 lahf_lm
+     *-pci
+          description: Host bridge
+          product: 440FX - 82441FX PMC [Natoma]
+          vendor: Intel Corporation
+          physical id: 100
+          bus info: pci@0000:00:00.0
+          version: 02
+          width: 32 bits
+          clock: 33MHz
+        *-isa
+             description: ISA bridge
+             product: 82371SB PIIX3 ISA [Natoma/Triton II]
+             vendor: Intel Corporation
+             physical id: 1
+             bus info: pci@0000:00:01.0
+             version: 00
+             width: 32 bits
+             clock: 33MHz
+             capabilities: isa bus_master
+             configuration: latency=0
+        *-ide
+             description: IDE interface
+             product: 82371AB/EB/MB PIIX4 IDE
+             vendor: Intel Corporation
+             physical id: 1.1
+             bus info: pci@0000:00:01.1
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: ide bus_master
+             configuration: driver=ata_piix latency=64
+             resources: irq:0 ioport:1f0(size=8) ioport:3f6 ioport:170(size=8) ioport:376 ioport:d000(size=16)
+        *-display UNCLAIMED
+             description: VGA compatible controller
+             product: VirtualBox Graphics Adapter
+             vendor: InnoTek Systemberatung GmbH
+             physical id: 2
+             bus info: pci@0000:00:02.0
+             version: 00
+             width: 32 bits
+             clock: 33MHz
+             capabilities: vga_controller bus_master
+             configuration: latency=0
+             resources: memory:e0000000-e0ffffff
+        *-network:0
+             description: Ethernet interface
+             product: 82540EM Gigabit Ethernet Controller
+             vendor: Intel Corporation
+             physical id: 3
+             bus info: pci@0000:00:03.0
+             logical name: eth0
+             version: 02
+             serial: 08:00:27:73:9b:5a
+             size: 1Gbit/s
+             capacity: 1Gbit/s
+             width: 32 bits
+             clock: 66MHz
+             capabilities: pm pcix bus_master cap_list ethernet physical tp 10bt 10bt-fd 100bt 100bt-fd 1000bt-fd autonegotiation
+             configuration: autonegotiation=on broadcast=yes driver=e1000 driverversion=7.3.21-k8-NAPI duplex=full latency=64 link=yes mingnt=255 multicast=yes port=twisted pair speed=1Gbit/s
+             resources: irq:19 memory:f0000000-f001ffff ioport:d010(size=8)
+        *-generic
+             description: System peripheral
+             product: VirtualBox Guest Service
+             vendor: InnoTek Systemberatung GmbH
+             physical id: 4
+             bus info: pci@0000:00:04.0
+             version: 00
+             width: 32 bits
+             clock: 33MHz
+             capabilities: bus_master
+             configuration: driver=vboxguest latency=0
+             resources: irq:20 ioport:d020(size=32) memory:f0400000-f07fffff memory:f0800000-f0803fff
+        *-multimedia
+             description: Multimedia audio controller
+             product: 82801AA AC'97 Audio Controller
+             vendor: Intel Corporation
+             physical id: 5
+             bus info: pci@0000:00:05.0
+             version: 01
+             width: 32 bits
+             clock: 33MHz
+             capabilities: bus_master
+             configuration: driver=snd_intel8x0 latency=64
+             resources: irq:21 ioport:d100(size=256) ioport:d200(size=64)
+        *-usb
+             description: USB controller
+             product: KeyLargo/Intrepid USB
+             vendor: Apple Inc.
+             physical id: 6
+             bus info: pci@0000:00:06.0
+             version: 00
+             width: 32 bits
+             clock: 33MHz
+             capabilities: ohci bus_master cap_list
+             configuration: driver=ohci-pci latency=64
+             resources: irq:22 memory:f0804000-f0804fff
+        *-bridge UNCLAIMED
+             description: Bridge
+             product: 82371AB/EB/MB PIIX4 ACPI
+             vendor: Intel Corporation
+             physical id: 7
+             bus info: pci@0000:00:07.0
+             version: 08
+             width: 32 bits
+             clock: 33MHz
+             capabilities: bridge bus_master
+             configuration: latency=0
+        *-network:1
+             description: Ethernet interface
+             product: 82540EM Gigabit Ethernet Controller
+             vendor: Intel Corporation
+             physical id: 8
+             bus info: pci@0000:00:08.0
+             logical name: eth1
+             version: 02
+             serial: 08:00:27:ff:93:b4
+             size: 1Gbit/s
+             capacity: 1Gbit/s
+             width: 32 bits
+             clock: 66MHz
+             capabilities: pm pcix bus_master cap_list ethernet physical tp 10bt 10bt-fd 100bt 100bt-fd 1000bt-fd autonegotiation
+             configuration: autonegotiation=on broadcast=yes driver=e1000 driverversion=7.3.21-k8-NAPI duplex=full ip=10.10.3.182 latency=64 link=yes mingnt=255 multicast=yes port=twisted pair speed=1Gbit/s
+             resources: irq:16 memory:f0820000-f083ffff ioport:d240(size=8)
+        *-storage
+             description: SATA controller
+             product: 82801HM/HEM (ICH8M/ICH8M-E) SATA Controller [AHCI mode]
+             vendor: Intel Corporation
+             physical id: d
+             bus info: pci@0000:00:0d.0
+             version: 02
+             width: 32 bits
+             clock: 33MHz
+             capabilities: storage pm ahci_1.0 bus_master cap_list
+             configuration: driver=ahci latency=64
+             resources: irq:21 ioport:d248(size=8) ioport:d258(size=8) ioport:d270(size=16) memory:f0840000-f0841fff
+     *-scsi:0
+          physical id: 3
+          logical name: scsi1
+          capabilities: emulated
+        *-cdrom
+             description: DVD reader
+             physical id: 0.0.0
+             bus info: scsi@1:0.0.0
+             logical name: /dev/cdrom
+             logical name: /dev/sr0
+             logical name: /media/ccbd/VBOXADDITIONS_4.3.10_93012
+             capabilities: audio dvd
+             configuration: mount.fstype=iso9660 mount.options=ro,nosuid,nodev,relatime,uid=1000,gid=1000,iocharset=utf8,mode=0400,dmode=0500 state=mounted status=ready
+     *-scsi:1
+          physical id: 4
+          logical name: scsi2
+          capabilities: emulated
+        *-disk
+             description: ATA Disk
+             product: VBOX HARDDISK
+             physical id: 0.0.0
+             bus info: scsi@2:0.0.0
+             logical name: /dev/sda
+             version: 1.0
+             serial: VBc6429277-1096a8e9
+             size: 61GiB (66GB)
+             capabilities: partitioned partitioned:dos
+             configuration: ansiversion=5 sectorsize=512 signature=000d113f
+           *-volume:0
+                description: EXT4 volume
+                vendor: Linux
+                physical id: 1
+                bus info: scsi@2:0.0.0,1
+                logical name: /dev/sda1
+                logical name: /
+                version: 1.0
+                serial: 7d43a8ad-80c0-4da6-80e9-551d99232001
+                size: 53GiB
+                capacity: 53GiB
+                capabilities: primary bootable journaled extended_attributes large_files huge_files dir_nlink recover extents ext4 ext2 initialized
+                configuration: created=2016-04-28 13:08:51 filesystem=ext4 lastmountpoint=/ modified=2016-04-28 16:56:01 mount.fstype=ext4 mount.options=rw,relatime,errors=remount-ro,data=ordered mounted=2016-04-28 16:56:01 state=mounted
+           *-volume:1
+                description: Extended partition
+                physical id: 2
+                bus info: scsi@2:0.0.0,2
+                logical name: /dev/sda2
+                size: 8190MiB
+                capacity: 8190MiB
+                capabilities: primary extended partitioned partitioned:extended
+              *-logicalvolume
+                   description: Linux swap / Solaris partition
+                   physical id: 5
+                   logical name: /dev/sda5
+                   capacity: 8190MiB
+                   capabilities: nofs
+ 
+NOTE : Make sure the Redis-server is running...
+Removing cuckoo_timing files cuckoo_insert_elem_timing.csv and cuckoo_check_elem_timing.csv
+Removing bloom_timing files bloom_insert_elem_timing.csv and bloom_check_elem_timing.csv
+Creating cuckoo_timing files
+Creating bloom_timing files
+Removing existing Cuckoo filter with name ck
+1
+Creating Cuckoo filter with name ck and size 41943040
+Executing command is : /home/ccbd/Desktop/Redis/redis/src/redis-cli cuckoocreate ck 41943040
+Command exec output is : OK
+Removing existing Bloom filter with name bf
+1
+Creating Bloom filter with name bf and size 41943040 and 30 hash functions
+Executing command is : ~/Desktop/Redis/redis/src/redis-cli bfcreate bf 41943040 30
+Command exec output is : OK
+Inserting elements into cuckoo and bloom filters..
+Initial test for insertion for cuckoo : 
+Executing command is : ~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement ck 0
+Command exec output is : 1
+Initial test for insertion for bloom : 
+Executing command is : ~/Desktop/Redis/redis/src/redis-cli bfadd bf 0
+Command exec output is : OK
+Completed inserting 5 elements
+Completed inserting 10 elements
+Completed inserting 15 elements
+Completed inserting 20 elements
+Completed inserting 25 elements
+Completed inserting 30 elements
+Completed inserting 35 elements
+Completed inserting 40 elements
+Completed inserting 45 elements
+Completed inserting 50 elements
+Checking for element existence in bloom and cuckoo filters.
+Initial test for Element existence for cuckoo : 
+Executing command is : ~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement ck 0
+Command exec output is : 1
+Initial test for Element existence for bloom : 
+Executing command is : ~/Desktop/Redis/redis/src/redis-cli bfmatch bf 0
+Command exec output is : 1
+Completed checking 5 elements
+Completed checking 10 elements
+Completed checking 15 elements
+Completed checking 20 elements
+Completed checking 25 elements
+Completed checking 30 elements
+Completed checking 35 elements
+Completed checking 40 elements
+Deleting the cuckoo filter
+1
+Deleting the bloom filter
+1
+Performance Simulated for 51 insertions and 41 checks is :
+Script execution start time : Tue May 3 12:17:30 IST 2016
+Script execution end time : Tue May 3 12:18:17 IST 2016
+Starting Visualizing the performance differences
+1462258246504	addons.xpi	WARN	Exception running bootstrap method shutdown on webapps-team@lists.launchpad.net: ReferenceError: sss is not defined (resource://gre/modules/addons/XPIProvider.jsm -> file:///usr/share/mozilla/extensions/%7Bec8030f7-c20a-464f-9b0e-13a3a9e97384%7D/webapps-team@lists.launchpad.net/bootstrap.js:72:4) JS Stack trace: shutdown@resource://gre/modules/addons/XPIProvider.jsm -> file:///usr/share/mozilla/extensions/%7Bec8030f7-c20a-464f-9b0e-13a3a9e97384%7D/webapps-team@bootstrap.js:72:5 < XPI_callBootstrapMethod@XPIProvider.jsm:4232:9 < shutdownObserver@XPIProvider.jsm:1969:1
+***************************************************
