@@ -33,8 +33,10 @@ BLOOM_FILTERNAME="bf"
 
 #CUCKOO_FILTERSIZE=4000000000
 #CUCKOO_FILTERSIZE=536870900 #no of elements , indirectly uses 512MB memory
-CUCKOO_FILTERSIZE=41943040 #40*1024*1024
-BLOOM_FILTERSIZE=41943040 #40*1024*1024
+#CUCKOO_FILTERSIZE=41943040 #40*1024*1024. for 4GB it is 4294967296
+#BLOOM_FILTERSIZE=41943040 #40*1024*1024
+CUCKOO_FILTERSIZE=536870900 #40*1024*1024. for 4GB it is 4294967296
+BLOOM_FILTERSIZE=536870900 #40*1024*1024
 BLOOM_HASH_FNS=20
 
 echo "Removing cuckoo_timing files $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE and $CUCKOO_ISMEMBER_EXEC_TIME_OUTPUT_FILE"
@@ -96,7 +98,8 @@ getCmdOutput "~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE
 sleep_before_reconnect=0.25;
 cuckoo_insert_time=0;
 bloom_insert_time=0;
-while [ $ELEM_INSERTION_COUNT -le 50000 ] #524288 = 512KB
+while [ $ELEM_INSERTION_COUNT -le 536870800 ] #524288 = 512KB
+#while [ $ELEM_INSERTION_COUNT -le 50000 ] #524288 = 512KB
 #while [ $ELEM_INSERTION_COUNT -le 50 ] #524288 = 512KB
 do
 	if [ 0 == `expr $ELEM_INSERTION_COUNT % 5` ]
@@ -113,14 +116,6 @@ do
 	#echo "Time taken for cuckoo is $cuckoo_insert_time"
 	#cuckoo_insert_time=0;
 
-	#echo "Inserting value $VALUE into bloom filter."
-	#\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $BLOOM_INSERTION_EXEC_TIME_OUTPUT_FIL8E ~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE	
-	lastTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE) 2>&1 1>/dev/null)";
-	bloom_insert_time=$(echo "scale=5;$bloom_insert_time+$lastTime" | bc); #bc is for adding decimal numbers..
-	#echo "Time taken for bloom is $bloom_insert_time"
-
-	sleep $sleep_before_reconnect; #so that previous client connect will not affect us.
-
         #echo "Inserting value $VALUE into cuckoo filter."
         #\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $CUCKOO_INSERTION_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement $CUCKOO_FILTERNAME $
         lastTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli cuckooinsertelement $CUCKOO_FILTERNAME $VALUE) 2>&1 1>/dev/null )" ;
@@ -129,7 +124,16 @@ do
 
 	sleep $sleep_before_reconnect #so that previous client connect will not affect us.
 
-	if [ 0 == `expr $ELEM_INSERTION_COUNT % 1000` ]
+	#echo "Inserting value $VALUE into bloom filter."
+	#\time -f "$ELEM_INSERTION_COUNT,%e" -a -o $BLOOM_INSERTION_EXEC_TIME_OUTPUT_FIL8E ~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE	
+	lastTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli bfadd $BLOOM_FILTERNAME $VALUE) 2>&1 1>/dev/null)";
+	bloom_insert_time=$(echo "scale=5;$bloom_insert_time+$lastTime" | bc); #bc is for adding decimal numbers..
+	#echo "Time taken for bloom is $bloom_insert_time"
+
+	sleep $sleep_before_reconnect; #so that previous client connect will not affect us.
+
+
+	if [ 0 == `expr $ELEM_INSERTION_COUNT % 1000000` ]
 	#if [ 0 == `expr $ELEM_INSERTION_COUNT % 10` ]
 	then
 		time1=$(echo "scale=5;$bloom_insert_time/$ELEM_INSERTION_COUNT" | bc)
@@ -158,7 +162,8 @@ getCmdOutput "~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VAL
 
 cuckoo_check_time=0;
 bloom_check_time=0;
-while [ $ELEM_CHECK_COUNT -le 40000 ]
+while [ $ELEM_CHECK_COUNT -le 536870800 ]
+#while [ $ELEM_CHECK_COUNT -le 40000 ]
 #while [ $ELEM_CHECK_COUNT -le 40 ]
 do
         if [ 0 == `expr $ELEM_CHECK_COUNT % 5` ]
@@ -175,21 +180,22 @@ do
 	#echo "time taken for cuckoo check is $cuckoo_check_time";
 	#cuckoo_check_time=0;
 
-	#echo "Checking for value $VALUE in bloom filter."
-	#\time -f "$ELEM_CHECK_COUNT,%e" -a -o $BLOOM_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE
-        lastTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE) 2>&1 1>/dev/null)";
-	bloom_check_time=$(echo "scale=5;$bloom_check_time+$lastTime" | bc);
-	#echo "time taken for bloom check is $bloom_check_time"
-
-	sleep $sleep_before_reconnect  #so that previous client connect will not affect us..
-
         #echo "Checking for value $VALUE in cuckoo filter."
         #\time -f "$ELEM_CHECK_COUNT,%e" -a -o $CUCKOO_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement $CUCKOO_FILTERNAME $VALUE
         lastTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli cuckoocheckelement $CUCKOO_FILTERNAME $VALUE) 2>&1 1>/dev/null)";
         cuckoo_check_time=$(echo "scale=5;$cuckoo_check_time+$lastTime" | bc);
         #echo "time taken for cuckoo check is $cuckoo_check_time";
 
-	if [ 0 == `expr $ELEM_CHECK_COUNT % 1000` ]
+	sleep $sleep_before_reconnect  #so that previous client connect will not affect us..
+
+	#echo "Checking for value $VALUE in bloom filter."
+	#\time -f "$ELEM_CHECK_COUNT,%e" -a -o $BLOOM_ISMEMBER_EXEC_TIME_OUTPUT_FILE ~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE
+        lastTime="$(TIMEFORMAT='%E';time (~/Desktop/Redis/redis/src/redis-cli bfmatch $BLOOM_FILTERNAME $VALUE) 2>&1 1>/dev/null)";
+	bloom_check_time=$(echo "scale=5;$bloom_check_time+$lastTime" | bc);
+	#echo "time taken for bloom check is $bloom_check_time"
+
+
+	if [ 0 == `expr $ELEM_CHECK_COUNT % 1000000` ]
 	#if [ 0 == `expr $ELEM_CHECK_COUNT % 10` ]
 	then
 	        time1=$(echo "scale=5;$bloom_check_time/$ELEM_CHECK_COUNT" | bc);
